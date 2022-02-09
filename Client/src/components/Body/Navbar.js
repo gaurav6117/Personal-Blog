@@ -1,24 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import jwt_decode from 'jwt-decode'
+import React from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom'
-import { setCart } from '../../config/Myservices';
 export default function Navbar() {
     let navigate = useNavigate()
     const isLoggedIn = useSelector(state => state.isLoggedIn)
-    const cartCount = useSelector(state => state.cartCount)
-    const Products = useSelector(state => state.Products)
     const dispatch = useDispatch()
     const logoutFunc = () => {
         dispatch({ type: "ISLOGGEDOUT" })
-        if (localStorage.getItem("token") !== undefined) {
-            if (localStorage.getItem("myCart") !== undefined) {
-                let token = localStorage.getItem("token")
-                let decode = jwt_decode(token);
-                let temp = localStorage.getItem("myCart")
-                setCart({ cartData: temp, token: localStorage.getItem('token'), user_id: decode.uid._id })
-            }
-        }
         navigate("/")
     }
     return (

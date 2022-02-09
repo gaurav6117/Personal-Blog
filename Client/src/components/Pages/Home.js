@@ -1,107 +1,95 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getproduct, fetchCart, setCart, fetchAddress, fetchOrder } from '../../config/Myservices';
+import { getpost, addpost } from '../../config/Myservices';
 import { useNavigate } from 'react-router-dom';
 import jwt_decode from 'jwt-decode'
 export default function Home() {
     const dispatch = useDispatch();
     let navigate = useNavigate();
+    const titleRef = useRef(null);
+    const bodyRef = useRef(null);
+    const tagRef = useRef(null);
     const [toast, settoast] = useState({ class: 'toast', message: '' })
     const Products = useSelector(state => state.Products)
-    console.log(Products);
+    const [tagArray, settagArray] = useState([]);
     useEffect(() => {
-        getproduct().then(res => dispatch({ type: 'AddProduct', payload: res.data }))
+        getpost().then(res => dispatch({ type: 'AddPost', payload: res.data.pdata }))
         if (localStorage.getItem("token") != undefined) {
             let token = localStorage.getItem("token")
             var decode = jwt_decode(token);
             dispatch({ type: "SETUID", payload: decode.uid })
-            fetchCart({ user_id: decode.uid._id, token: localStorage.getItem('token') }).then(res => {
-                let temp = JSON.parse(res.data.cart_value);
-                if (localStorage.getItem("myCart") != undefined) {
-                    let arr = JSON.parse(localStorage.getItem("myCart"));
-                    for (const id in temp) {
-                        if ((Object.keys(arr)).includes(id)) {
-                            let local_val = arr[id];
-                            let db_val = temp[id];
-                            arr[id] = local_val > db_val ? local_val : db_val;
-                            let temp2 = Object.keys(arr);
-                            dispatch({ type: "CARTCOUNT", payload: temp2.length });
-                            localStorage.setItem("myCart", JSON.stringify(arr));
-                        }
-                        else {
-                            let db_val = temp[id];
-                            arr[id] = db_val;
-                            let temp2 = Object.keys(arr);
-                            dispatch({ type: "CARTCOUNT", payload: temp2.length });
-                            localStorage.setItem("myCart", JSON.stringify(arr));
-                        }
-                    }
-                }
-                else {
-                    let temp2 = Object.keys(temp);
-                    dispatch({ type: "CARTCOUNT", payload: temp2.length });
-                    localStorage.setItem("myCart", JSON.stringify(temp));
-                }
-            })
-            if (localStorage.getItem("myCart") != undefined) {
-                let token = localStorage.getItem("token")
-                let decode = jwt_decode(token);
-                let temp = localStorage.getItem("myCart")
-                setCart({ cartData: temp, user_id: decode.uid._id, token: localStorage.getItem('token') })
-            }
-            fetchAddress({ user_id: decode.uid._id, token: localStorage.getItem('token') }).then(res => {
-                if (res.data) {
-                    dispatch({ type: "ADDRESS", payload: JSON.parse(res.data.address) })
-                }
-            })
-            fetchOrder({ user_id: decode.uid._id, token: localStorage.getItem('token') }).then(res => {
-                if (res.data) {
-                    dispatch({ type: "ORDER", payload: res.data })
-                }
-            })
         }
     }, [])
-    const callToastFunc = (message) => {
-        settoast({ ...toast, class: 'myclass', message: message })
-        setTimeout(() => {
-            settoast({ ...toast, class: 'toast' })
-        }, 2000);
-    }
+    const Posts = useSelector(state => state.Posts)
+    console.log(Posts);
     const productDetailFunc = (id) => {
         navigate(`/productDetail/${id}`)
     }
-    const addToCart = (id) => {
-        if (localStorage.getItem("myCart") != undefined) {
-            let arr = JSON.parse(localStorage.getItem("myCart"));
-            if ((Object.keys(arr)).includes(String(id))) {
-                var val = arr[id];
-                arr[id] = val + 1;
-                let temp2 = Object.keys(arr);
-                dispatch({ type: "CARTCOUNT", payload: temp2.length });
-                localStorage.setItem("myCart", JSON.stringify(arr));
-                callToastFunc("Product Added!")
-            }
-            else {
-                arr[id] = 1;
-                let temp2 = Object.keys(arr);
-                dispatch({ type: "CARTCOUNT", payload: temp2.length });
-                localStorage.setItem("myCart", JSON.stringify(arr));
-                callToastFunc("Product Added!")
-            }
-        }
-        else {
-            let arr = { [id]: 1 }
-            let temp2 = Object.keys(arr);
-            dispatch({ type: "CARTCOUNT", payload: temp2.length });
-            localStorage.setItem("myCart", JSON.stringify(arr))
-            callToastFunc("Product Added!")
-        }
+    const addPostFunc = (e) => {
+        e.preventDefault()
+        const data = { 'title': titleRef.current.value, 'body': bodyRef.current.value, 'tags': JSON.stringify(tagArray) }
+        addpost(data)
+            .then(res => console.log(res.data))
+    }
+    const addTagFunc = () => {
+        const tag = tagRef.current.value
+        settagArray([...tagArray, tag])
+        tagRef.current.value = null;
+        console.log(tagArray);
     }
     return (
-        <>
+        <div className="container">
             <h2 className="text-center mt-4 ">Welcome To MyBlog</h2>
+            <div style={{ textAlign: 'right' }}>
+                <button type="button" className="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo"> Add Post </button>
+            </div>
+            {/* <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo">Open modal for @mdo</button> */}
+
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">New Post</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="recipient-name" class="col-form-label">Title:</label>
+                                <input type="text" ref={titleRef} class="form-control" id="title" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="message-text" class="col-form-label">Body:</label>
+                                <textarea ref={bodyRef} class="form-control" id="message-text"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tag" class="col-form-label">Tag:</label>
+                                <input ref={tagRef} type="text" class="form-control" id="tag"></input>
+                            </div>
+                            <button onClick={addTagFunc} className="btn btn-outline-dark">ADD Tag</button>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button onClick={addPostFunc} type="submit" class="btn btn-primary">Add Post</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div className="row my-4 container m-auto">
-                {Products.slice(0, 6).map(elem =>
+                {Posts.map(elem =>
+                    <div key={elem._id} className="col-lg-4 ">
+                        <div class="card" style={{ width: "18rem", margin: "10px 10px 10px 10px" }}>
+                            <div class="card-body">
+                                <h5 class="card-title">{elem.title}</h5>
+                                <hr/>
+                                <p class="card-text">{elem.body.slice(0,75)+'...'}</p>
+                                <p class="card-text"><b>Tags:</b>{elem.tags}</p>
+                                <a href="#" class="card-link">Card link</a>
+                                <a href="#" class="card-link">Another link</a>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* {Products.map(elem =>
                     <div key={elem._id} className="col-lg-4 productCard">
                         <div className="productCardInner" style={{ width: "19rem" }}>
                             <img src={elem.product_image[0].base64} onClick={() => productDetailFunc(elem._id)} className="card-img-top m-auto" height="180px" width="100px" alt="no image" />
@@ -117,7 +105,7 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
-                )}
+                )} */}
             </div>
             <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: "11" }}>
                 <div id="liveToast" className={toast.class} role="alert" aria-live="assertive" aria-atomic="true">
@@ -132,6 +120,6 @@ export default function Home() {
                 </div>
             </div>
             <br /><br />
-        </>
+        </div>
     )
 }

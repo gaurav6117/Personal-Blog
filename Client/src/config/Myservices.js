@@ -22,11 +22,11 @@ export function editProfile(data){
 }
 
 // admin function
-export function addColor(data){
-    return axios.post(`${MAIN_URL}/admin/addcolor`,data);
+export function addpost(data){
+    return axios.post(`${MAIN_URL}/blog/addpost`,data);
 }
-export function addCategory(data){
-    return axios.post(`${MAIN_URL}/admin/addcategory`,data);
+export function getpost(){
+    return axios.get(`${MAIN_URL}/blog/getpost`);
 }
 export function addProduct(data){
     return axios.post(`${MAIN_URL}/admin/addproduct`,data);

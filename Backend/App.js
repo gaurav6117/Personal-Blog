@@ -15,7 +15,7 @@ const apiRoutes = require("./Routes/apiRoutes")
 const loginRoutes = require("./Routes/loginRoutes")
 const adminRoutes = require("./Routes/adminRoutes")
 // using routes
-app.use("/product", apiRoutes)
+app.use("/blog", apiRoutes)
 app.use("/login", loginRoutes)
 app.use("/admin", adminRoutes)
 app.get("*", (req, res) => {

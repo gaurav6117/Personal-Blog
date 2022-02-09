@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
+const blogModel = require('../Db/blogSchema') 
 const jwtSecret = "asdasd324234#@$dgdfg";
 function authenticateToken(req, res, next) {
     let token = req.body.token
@@ -18,20 +19,17 @@ function authenticateToken(req, res, next) {
         })
     }
 }
-// fetch product ----------------------------------------------------------------------------
-router.get("/", (req, res) => {
-    productModel.find().populate(["category_id", "color_id"]).then(product => {
-        res.send(product)
-    })
-}) 
-router.post("/fetchproduct", (req, res) => {
-    let findArg = req.body.filterArgs!=undefined?req.body.filterArgs:{};
-    let order = req.body.order ? req.body.order : "asc";
-    let sortBy = req.body.sortBy ? req.body.sortBy : "created_at";
-    productModel.find(findArg).populate(["category_id", "color_id"]).sort([[sortBy, order]]).then(product => {
-        res.send(product)
+router.post("/addpost", (req,res)=>{
+    new blogModel(req.body).save(() => {
+        res.send("post added");
     })
 })
-
-
+router.get("/getpost", (req,res)=>{
+    blogModel.find({}, (err, data) => {
+        if (err) throw err;
+        if (data) {
+            res.json({ success: true, pdata: data });
+        }
+    })
+})
 module.exports = router;

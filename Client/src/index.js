@@ -6,10 +6,10 @@ import { Provider } from "react-redux";
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.min.css';
-const initialState = { isLoggedIn: false, uid: {}, Products: [], searchData: [] };
+const initialState = { isLoggedIn: false, uid: {}, Posts: [], searchData: [] };
 function reducer(state = initialState, actions) {
   switch (actions.type) {
-    case 'AddProduct': return { ...state, Products: actions.payload };
+    case 'AddPost': return { ...state, Posts: actions.payload };
     case 'SETUID': return { ...state, uid: actions.payload };
     case 'ISLOGGEDIN': return { ...state, isLoggedIn: true };
     case 'ISLOGGEDOUT': return { ...state, isLoggedIn: false };
