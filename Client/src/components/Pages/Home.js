@@ -10,8 +10,7 @@ export default function Home() {
     const bodyRef = useRef(null);
     const tagRef = useRef(null);
     const [toast, settoast] = useState({ class: 'toast', message: '' })
-    const Products = useSelector(state => state.Products)
-    const [tagArray, settagArray] = useState([]);
+    const [tagArray, settagArray] = useState(null);
     useEffect(() => {
         getpost().then(res => dispatch({ type: 'AddPost', payload: res.data.pdata }))
         if (localStorage.getItem("token") != undefined) {
@@ -20,22 +19,31 @@ export default function Home() {
             dispatch({ type: "SETUID", payload: decode.uid })
         }
     }, [])
+    const [rerender, setrerender] = useState(false)
     const Posts = useSelector(state => state.Posts)
     console.log(Posts);
-    const productDetailFunc = (id) => {
-        navigate(`/productDetail/${id}`)
+    const postDetailFunc = (id) => {
+        navigate(`/postDetail/${id}`)
     }
     const addPostFunc = (e) => {
         e.preventDefault()
         const data = { 'title': titleRef.current.value, 'body': bodyRef.current.value, 'tags': JSON.stringify(tagArray) }
         addpost(data)
-            .then(res => console.log(res.data))
+        setrerender(!rerender)
     }
     const addTagFunc = () => {
         const tag = tagRef.current.value
-        settagArray([...tagArray, tag])
+        // settagArray([...tagArray, tag])
+        if (tagArray == null) {
+            settagArray(tag)
+        }
+        else {
+            settagArray(tagArray + ', ' + tag)
+        }
         tagRef.current.value = null;
-        console.log(tagArray);
+    }
+    const blogDetailFunc = (id) => {
+        navigate(`/blogDetail/${id}`)
     }
     return (
         <div className="container">
@@ -43,8 +51,6 @@ export default function Home() {
             <div style={{ textAlign: 'right' }}>
                 <button type="button" className="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo"> Add Post </button>
             </div>
-            {/* <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo">Open modal for @mdo</button> */}
-
             <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -75,37 +81,21 @@ export default function Home() {
                 </div>
             </div>
             <div className="row my-4 container m-auto">
-                {Posts.map(elem =>
-                    <div key={elem._id} className="col-lg-4 ">
+                {Posts.length > 0 ? Posts.map(elem =>
+                    <div key={elem._id} onClick={() => blogDetailFunc(elem._id)} className="col-lg-4 ">
                         <div class="card" style={{ width: "18rem", margin: "10px 10px 10px 10px" }}>
                             <div class="card-body">
-                                <h5 class="card-title">{elem.title}</h5>
-                                <hr/>
-                                <p class="card-text">{elem.body.slice(0,75)+'...'}</p>
-                                <p class="card-text"><b>Tags:</b>{elem.tags}</p>
-                                <a href="#" class="card-link">Card link</a>
-                                <a href="#" class="card-link">Another link</a>
+                                <h5 class="card-title" style={{ fontSize: '25px' }}>{elem.title}</h5>
+                                <hr />
+                                <p class="card-text" style={{ fontSize: '20px' }}>{elem.body.slice(0, 75) + '...'}</p>
+                                <p class="card-text" style={{ fontSize: '20px' }}><b>Tags:</b>{elem.tags}</p>
+                                <button onClick={() => postDetailFunc(elem.id)} className="btn btn-outline-primary" style={{ width: "100%" }}>View Post</button>
                             </div>
                         </div>
                     </div>
-                )}
-                {/* {Products.map(elem =>
-                    <div key={elem._id} className="col-lg-4 productCard">
-                        <div className="productCardInner" style={{ width: "19rem" }}>
-                            <img src={elem.product_image[0].base64} onClick={() => productDetailFunc(elem._id)} className="card-img-top m-auto" height="180px" width="100px" alt="no image" />
-                            <div className="cardBody">
-                                <h5 className="cardTitle">{elem.product_name}</h5>
-                                <div className="d-flex justify-content-between">
-                                    <span className="productCardCost">${elem.product_cost}</span>
-                                    <span className="productCardRating">Rating: <span className="cardRatingValue">{elem.product_rating}</span><i style={{ color: "blue", fontSize: "20px" }} className="fa fa-star"></i></span>
-                                </div>
-                                <div>
-                                    <button onClick={() => addToCart(elem._id)} className="btn btn-primary productCardBtn">Add to Cart</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )} */}
+                ) : <div style={{width:"100%", height:"200px"}}>
+                    <h2 style={{position:"absolute", left:"500px", top:"350px", backgroundColor:"gray", color:"white", padding:"0px 10px 0px 10px"}}>No Posts Available! Add Now</h2>
+                </div>}
             </div>
             <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: "11" }}>
                 <div id="liveToast" className={toast.class} role="alert" aria-live="assertive" aria-atomic="true">
